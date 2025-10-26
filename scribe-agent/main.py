@@ -5,6 +5,8 @@ from enum import Enum
 import uuid
 import os
 from google.cloud import firestore
+import base64
+import json
 
 class ActivityStatus(Enum):
     SLEEPING='Sleeping'
@@ -49,10 +51,16 @@ def health_check():
 @app.route('/api/scribe', methods=["POST"])
 def scribe():
     try:
-        payload = request.get_json()
-        if payload is None:
-            return jsonify({"message": "[SCRIBE] The request is malformed."}), 400
-        pushAsPublisher(payload)
+        envelope = request.get_json()
+
+        if not envelope or "message" not in envelope or "data" not in envelope["message"]:
+            return jsonify({"message": "[SCRIBE] Malformed Pub/Sub envelope."}), 400
+        
+        payload_encoded = envelope['message']['data']
+        payload_byte = base64.b64decode(payload_encoded)
+        payload = payload_byte.decode('utf-8')
+        payload_dict = json.loads(payload)
+        pushAsPublisher(payload_dict)
         return jsonify({ "message": "Payload successful!" }), 201
     except ValidationError as e:
         print(f"[SCRIBE] The validation failed. Schema was malformed.")
