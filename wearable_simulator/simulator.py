@@ -35,7 +35,7 @@ def get_current_activity():
         return "Sleeping"
     else:
         # Simulate active/resting state during the day
-        return random.choice(["Active", "Resting", "Active"])
+        return random.choice(["Active", "Resting"])
 
 # --- Main Simulation Logic ---
 
